@@ -13,6 +13,15 @@ def load_csv(path):
     with open(path, newline="") as file:
         return list(csv.DictReader(file))
 
+ROUNDING_TOLERANCE = 0.02
+
+def amounts_match(amt1, amt2):
+    try:
+        return abs(float(amt1) - float(amt2)) <= ROUNDING_TOLERANCE
+    except ValueError:
+        return amt1 == amt2
+
+
 def normalize_reference(reference):
     if not reference:
         return ""
@@ -72,7 +81,7 @@ def score_candidate(statement, ledger):
     evidence = []
 
     # Amount match (pre-requisite, strong signal)
-    if statement["amount"] == ledger["amount"]:
+    if amounts_match(statement["amount"], ledger["amount"]):
         score += 50
         evidence.append("amount_exact")
 
@@ -144,7 +153,7 @@ def match_exact(statement_rows, ledger_rows):
                 continue
 
             if (
-                statement["amount"] == ledger["amount"]
+                amounts_match(statement["amount"], ledger["amount"])
                 and is_exact_token(ledger["ref"], statement["narration"])
             ):
                 layer1_candidates.append(ledger)
@@ -194,7 +203,7 @@ def match_exact(statement_rows, ledger_rows):
                 normalized_narration = normalize_reference(statement["narration"])
 
                 if (
-                    statement["amount"] == ledger["amount"]
+                    amounts_match(statement["amount"], ledger["amount"])
                     and normalized_ref in normalized_narration
                 ):
                     layer2_candidates.append(ledger)
@@ -243,7 +252,7 @@ def match_exact(statement_rows, ledger_rows):
                 if ledger["ledger_id"] in consumed_ledgers:
                     continue
 
-                if statement["amount"] == ledger["amount"]:
+                if amounts_match(statement["amount"], ledger["amount"]):
                     normalized_ledger_ref = ledger["normalized_ref"]
 
                     is_typo = False
@@ -274,7 +283,7 @@ def match_exact(statement_rows, ledger_rows):
                     continue
 
                 # Pre-requisite: exact amount
-                if statement["amount"] == ledger["amount"]:
+                if amounts_match(statement["amount"], ledger["amount"]):
                     score, evidence = score_candidate(statement, ledger)
                     scored_candidates.append((score, ledger["ledger_id"], evidence))
 
