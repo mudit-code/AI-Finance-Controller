@@ -137,6 +137,7 @@ def match_exact(statement_rows, ledger_rows):
     results = []
     consumed_ledgers = set()
     consumed_stmts = set()
+    top_candidates_for_stmt = {}
 
     # Pre-calculate normalized ledger references
     for ledger in ledger_rows:
@@ -187,7 +188,8 @@ def match_exact(statement_rows, ledger_rows):
                     "stmt_id": statement["stmt_id"],
                     "ledger_id": None,
                     "status": "UNMATCHED",
-                    "method": "ambiguous_exact_reference"
+                    "method": "ambiguous_exact_reference",
+                    "rejected_candidates": layer1_candidates
                 })
                 consumed_stmts.add(statement["stmt_id"])
                 matched = True
@@ -237,7 +239,8 @@ def match_exact(statement_rows, ledger_rows):
                         "stmt_id": statement["stmt_id"],
                         "ledger_id": None,
                         "status": "UNMATCHED",
-                        "method": "ambiguous_normalized_reference"
+                        "method": "ambiguous_normalized_reference",
+                        "rejected_candidates": layer2_candidates
                     })
                     consumed_stmts.add(statement["stmt_id"])
                     matched = True
@@ -289,6 +292,8 @@ def match_exact(statement_rows, ledger_rows):
 
             if scored_candidates:
                 scored_candidates.sort(key=lambda x: x[0], reverse=True)
+                top_candidates_for_stmt[statement["stmt_id"]] = scored_candidates[:2]
+                
                 best_score, best_id, best_evidence = scored_candidates[0]
 
                 THRESHOLD = 75.0
@@ -330,7 +335,8 @@ def match_exact(statement_rows, ledger_rows):
                     "stmt_id": stmt_id,
                     "ledger_id": None,
                     "status": "REVIEW_REQUIRED",
-                    "method": "ambiguous_split_payment"
+                    "method": "ambiguous_split_payment",
+                    "rejected_candidates": []
                 })
                 consumed_stmts.add(stmt_id)
             # Do NOT consume the ledger
@@ -360,11 +366,14 @@ def match_exact(statement_rows, ledger_rows):
     # Finally, append UNMATCHED for anything remaining
     for statement in statement_rows:
         if statement["stmt_id"] not in consumed_stmts:
+            cands = top_candidates_for_stmt.get(statement["stmt_id"], [])
+            formatted_cands = [{"ledger_id": c[1], "score": c[0], "evidence": c[2]} for c in cands]
             results.append({
                 "stmt_id": statement["stmt_id"],
                 "ledger_id": None,
                 "status": "UNMATCHED",
-                "method": "no_exact_match"
+                "method": "no_exact_match",
+                "rejected_candidates": formatted_cands
             })
 
     return results
