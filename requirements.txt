@@ -1,5 +1,5 @@
 groq==0.11.0
-streamlit
+streamlit==1.63.0
 pandas
 python-dotenv
 pytest
