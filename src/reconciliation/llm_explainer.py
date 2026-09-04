@@ -50,6 +50,7 @@ def explain_exceptions(statement_rows, ledger_rows, results, limit=None):
 
     # Pre-index statements and ledgers for quick lookup
     stmt_map = {s["stmt_id"]: s for s in statement_rows}
+    ledger_map = {l["ledger_id"]: l for l in ledger_rows}
     
     for exc in exceptions:
         stmt = stmt_map.get(exc["stmt_id"])
@@ -77,8 +78,13 @@ Rejected Candidates considered by the matcher:
                     lid = cand["ledger_id"]
                     score = cand.get("score", "N/A")
                     evidence = cand.get("evidence", "N/A")
-                    ref = cand.get("ref", "N/A")
-                    prompt += f"Candidate {i+1}: ID={lid}, Score={score}, Evidence={evidence}, Ref={ref}\n"
+                    
+                    # Look up the actual ledger row to get ref and other details
+                    l_row = ledger_map.get(lid, {})
+                    ref = l_row.get("ref", "N/A")
+                    amt = l_row.get("amount", "N/A")
+                    
+                    prompt += f"Candidate {i+1}: ID={lid}, Amount={amt}, Score={score}, Evidence={evidence}, Ref={ref}\n"
                 else:
                     prompt += f"Candidate {i+1}: {cand}\n"
         else:

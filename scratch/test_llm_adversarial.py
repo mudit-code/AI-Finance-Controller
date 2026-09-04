@@ -24,7 +24,7 @@ def main():
     results = match_exact(statements, ledgers)
 
     print("Running explain_exceptions...")
-    enriched_results = explain_exceptions(statements, ledgers, results, limit=5)
+    enriched_results = explain_exceptions(statements, ledgers, results, limit=None)
 
     exceptions = [r for r in enriched_results if r.get("status") in ["UNMATCHED", "REVIEW_REQUIRED"]]
     
