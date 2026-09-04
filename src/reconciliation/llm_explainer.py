@@ -18,11 +18,22 @@ def explain_exceptions(statement_rows, ledger_rows, results, limit=None):
     if limit is not None:
         exceptions = exceptions[:limit]
         
-    api_key = os.environ.get("GROQ_API_KEY")
+    # First try Streamlit secrets, then fall back to os.environ
+    api_key = None
+    try:
+        import streamlit as st
+        if "GROQ_API_KEY" in st.secrets:
+            api_key = st.secrets["GROQ_API_KEY"]
+    except Exception:
+        pass
+        
+    if not api_key:
+        api_key = os.environ.get("GROQ_API_KEY")
+        
     if not api_key:
         print("Warning: GROQ_API_KEY not found. Skipping LLM explanations.")
         for ext in exceptions:
-            ext["llm_explanation"] = f"Rule-based reason: {ext.get('method')}"
+            ext["llm_explanation"] = f"Key Missing (Rule-based: {ext.get('method')})"
             ext["llm_disagreement"] = False
         return new_results
 
@@ -30,8 +41,10 @@ def explain_exceptions(statement_rows, ledger_rows, results, limit=None):
         client = Groq(api_key=api_key)
     except Exception as e:
         print(f"Warning: Failed to initialize Groq client: {e}")
+        import traceback
+        traceback.print_exc()
         for ext in exceptions:
-            ext["llm_explanation"] = f"Rule-based reason: {ext.get('method')}"
+            ext["llm_explanation"] = f"Client Init Error: {type(e).__name__}: {str(e)}"
             ext["llm_disagreement"] = False
         return new_results
 
@@ -78,7 +91,7 @@ Keep it factual, concise, and focused on the discrepancy. Do not try to make a f
         try:
             chat_completion = client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="qwen/qwen3.8-27b",
+                model="openai/gpt-oss-20b",
                 temperature=0.0
             )
             explanation = chat_completion.choices[0].message.content.strip()
@@ -103,7 +116,9 @@ Keep it factual, concise, and focused on the discrepancy. Do not try to make a f
                 
         except Exception as e:
             print(f"Warning: Groq API call failed for {exc['stmt_id']}: {e}")
-            exc["llm_explanation"] = f"Rule-based reason: {method}"
+            import traceback
+            traceback.print_exc()
+            exc["llm_explanation"] = f"API Error: {type(e).__name__}: {str(e)} (Rule-based: {method})"
             exc["llm_disagreement"] = False
 
     return new_results
