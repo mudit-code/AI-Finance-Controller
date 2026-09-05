@@ -11,6 +11,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from src.reconciliation.matcher import load_csv, match_exact
 from src.reconciliation.llm_explainer import explain_exceptions
 from src.evaluation.metrics_holdout import evaluate
+from src.reconciliation.utils import clean_llm_text
 
 st.set_page_config(page_title="AI Finance Controller", layout="wide")
 
@@ -124,9 +125,7 @@ if st.session_state.pipeline_data:
                     st.subheader(f"Statement: {exc['stmt_id']} ({exc['status']})")
                     st.write(f"**Matcher Reason:** {exc['method']}")
                     explanation = exc.get('llm_explanation', 'No explanation provided.')
-                    # Sanitize markdown characters that can break formatting (like S7_A or LaTeX $math$)
-                    for char in ['_', '*', '`', '~', '$']:
-                        explanation = explanation.replace(char, f'\\{char}')
+                    explanation = clean_llm_text(explanation)
                     st.write(f"**LLM Explanation:** {explanation}")
                 with c2:
                     if is_disagreement:
@@ -171,8 +170,7 @@ if st.session_state.pipeline_data:
                                 st.write(f"**Rejected Candidates Count:** {len(cands)}")
                                 
                                 explanation = exc.get('llm_explanation', 'No explanation provided.')
-                                for char in ['_', '*', '`', '~', '$']:
-                                    explanation = explanation.replace(char, f'\\{char}')
+                                explanation = clean_llm_text(explanation)
                                 st.write(f"**LLM Explanation:** {explanation}")
                             with c2:
                                 if is_disagreement:

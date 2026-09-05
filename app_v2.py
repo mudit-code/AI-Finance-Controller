@@ -7,27 +7,7 @@ import re
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
-def clean_explanation(text):
-    if not isinstance(text, str):
-        return str(text)
-    
-    jargon_map = {
-        "confidence threshold": "certainty level",
-        "no_exact_match": "no matching record",
-        "ambiguous split payment": "unclear split payment",
-        "ambiguous_exact_reference": "unclear exact reference",
-        "candidate_score": "system score"
-    }
-    
-    # 1. Replace jargon terms
-    for k, v in jargon_map.items():
-        text = text.replace(k, v)
-        text = text.replace(k.title(), v.title())
-        
-    # 2. Strip ALL markdown bold/italic/code markers (*, **, _, __, `)
-    text = re.sub(r'[*_`]+', '', text)
-    
-    return text.strip()
+from src.reconciliation.utils import clean_llm_text
 
 
 # Ensure src modules can be imported
@@ -236,7 +216,7 @@ if st.session_state.reconciliation_enriched:
                 with c1:
                     st.write(f"**Transaction:** {exc['stmt_id']} ({map_status(exc['status'])})")
                     explanation = exc.get('llm_explanation', 'No explanation provided.')
-                    explanation = clean_explanation(explanation)
+                    explanation = clean_llm_text(explanation)
                     st.write(f"**Here's why:** {explanation}")
                 with c2:
                     if is_disagreement:
@@ -275,7 +255,7 @@ if st.button("Run Ambiguous Cases Showcase"):
                             st.write(f"**Transaction:** {exc['stmt_id']} ({map_status(exc['status'])})")
                             
                             explanation = exc.get('llm_explanation', 'No explanation provided.')
-                            explanation = clean_explanation(explanation)
+                            explanation = clean_llm_text(explanation)
                             st.write(f"**Here's why:** {explanation}")
                         with c2:
                             if is_disagreement:
