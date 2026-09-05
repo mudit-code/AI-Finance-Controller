@@ -26,8 +26,8 @@ The system was evaluated against a holdout dataset, achieving the following resu
 
 ## Technical Decisions & Limitations
 
-### Model Swap to Qwen
-The original spec requested the `llama-3.1-8b-instant` model for the explainer. However, because that model identifier was deprecated/returning 404s via the Groq API, it was swapped to `qwen/qwen3.8-27b`. This ensures the live application continues to provide dynamic AI explanations rather than falling back to rule-based defaults. See `DECISIONS.md` for more context.
+### Model Swap to GPT-OSS
+The original spec requested the `llama-3.1-8b-instant` model for the explainer. However, because that model identifier was deprecated/returning 404s via the Groq API, it was swapped to `openai/gpt-oss-20b`. This ensures the live application continues to provide dynamic AI explanations rather than falling back to rule-based defaults. See `DECISIONS.md` for more context.
 
 ### Known Limitations
 - **3-Way Splits:** The split matching layer is currently tuned for 2-way splits. 3-way split combinations are not reliably matched (Test case 8 intentionally xfails to track this limitation).

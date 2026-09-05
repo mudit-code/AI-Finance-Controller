@@ -1,7 +1,7 @@
 # Technical Decisions
 
 ## LLM Explainer Model Change
-The `AGENT_INSTRUCTIONS.md` initially requested the use of `llama-3.1-8b-instant` for the LLM explainer. However, this model string now returns a `404 Model Not Found` error from the Groq API (likely due to deprecation or a change in their available endpoints). To ensure the pipeline functions correctly and provides actual AI-generated explanations instead of falling back to rule-based strings, the model was swapped to `qwen/qwen3.8-27b`. This was a functional necessity, not just a workaround.
+The `AGENT_INSTRUCTIONS.md` initially requested the use of `llama-3.1-8b-instant` for the LLM explainer. However, this model string now returns a `404 Model Not Found` error from the Groq API (likely due to deprecation or a change in their available endpoints). To ensure the pipeline functions correctly and provides actual AI-generated explanations instead of falling back to rule-based strings, the model was swapped to `openai/gpt-oss-20b`. This was a functional necessity, not just a workaround.
 
 ## LLM Disagreement Flag Design
 The `llm_disagreement` flag in the `explain_exceptions` function is designed to fire rarely, if ever, by design. The prompt explicitly instructs the LLM: *"Keep it factual, concise, and focused on the discrepancy. Do not try to make a final decision."* 
