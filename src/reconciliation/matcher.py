@@ -165,7 +165,8 @@ def match_exact(statement_rows, ledger_rows):
                 "stmt_id": statement["stmt_id"],
                 "ledger_id": ledger["ledger_id"],
                 "status": "MATCHED",
-                "method": "exact_reference_amount"
+                "method": "exact_reference_amount",
+                "confidence": score_candidate(statement, ledger)[0]
             })
             consumed_ledgers.add(ledger["ledger_id"])
             consumed_stmts.add(statement["stmt_id"])
@@ -178,7 +179,8 @@ def match_exact(statement_rows, ledger_rows):
                     "stmt_id": statement["stmt_id"],
                     "ledger_id": ledger["ledger_id"],
                     "status": "MATCHED",
-                    "method": "exact_reference_amount"
+                    "method": "exact_reference_amount",
+                    "confidence": score_candidate(statement, ledger)[0]
                 })
                 consumed_ledgers.add(ledger["ledger_id"])
                 consumed_stmts.add(statement["stmt_id"])
@@ -216,7 +218,8 @@ def match_exact(statement_rows, ledger_rows):
                     "stmt_id": statement["stmt_id"],
                     "ledger_id": ledger["ledger_id"],
                     "status": "MATCHED",
-                    "method": "normalized_reference_amount"
+                    "method": "normalized_reference_amount",
+                    "confidence": score_candidate(statement, ledger)[0]
                 })
                 consumed_ledgers.add(ledger["ledger_id"])
                 consumed_stmts.add(statement["stmt_id"])
@@ -229,7 +232,8 @@ def match_exact(statement_rows, ledger_rows):
                         "stmt_id": statement["stmt_id"],
                         "ledger_id": ledger["ledger_id"],
                         "status": "MATCHED",
-                        "method": "normalized_reference_amount"
+                        "method": "normalized_reference_amount",
+                        "confidence": score_candidate(statement, ledger)[0]
                     })
                     consumed_ledgers.add(ledger["ledger_id"])
                     consumed_stmts.add(statement["stmt_id"])
@@ -268,11 +272,13 @@ def match_exact(statement_rows, ledger_rows):
                         candidates.append(ledger["ledger_id"])
 
             if len(candidates) == 1:
+                ledger = next(l for l in ledger_rows if l["ledger_id"] == candidates[0])
                 results.append({
                     "stmt_id": statement["stmt_id"],
                     "ledger_id": candidates[0],
                     "status": "MATCHED",
-                    "method": "reference_typo_amount"
+                    "method": "reference_typo_amount",
+                    "confidence": score_candidate(statement, ledger)[0]
                 })
                 consumed_ledgers.add(candidates[0])
                 consumed_stmts.add(statement["stmt_id"])
@@ -313,7 +319,8 @@ def match_exact(statement_rows, ledger_rows):
                                 "stmt_id": statement["stmt_id"],
                                 "ledger_id": best_id,
                                 "status": "MATCHED",
-                                "method": "candidate_score"
+                                "method": "candidate_score",
+                                "confidence": best_score
                             })
                             consumed_ledgers.add(best_id)
                             consumed_stmts.add(statement["stmt_id"])
